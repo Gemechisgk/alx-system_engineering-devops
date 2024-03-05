@@ -1,39 +1,9 @@
-#!/bin/bash
-
-# Update and install Nginx
+#!/usr/bin/env bash
+# Script that configures Nginx server with a custom header
 apt-get -y update
 apt-get -y install nginx
-
-# Create a basic HTML file
 echo "Hello World!" > /var/www/html/index.nginx-debian.html
-
-# Configure custom 404 page
 echo "Ceci n'est pas une page" > /usr/share/nginx/html/custom_404.html
-
-# Configure Nginx with custom header
-cat <<EOL > /etc/nginx/sites-available/default
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-
-    root /var/www/html;
-    index index.html index.htm;
-
-    server_name _;
-
-    location / {
-        try_files \$uri \$uri/ =404;
-    }
-
-    error_page 404 /custom_404.html;
-    location = /custom_404.html {
-        root /usr/share/nginx/html;
-        internal;
-    }
-
-    add_header X-Served-By "\$HOSTNAME";
-}
-EOL
-
-# Restart Nginx
-service nginx restart
+sed -i "s/server_name _;/server_name _;\n\trewrite ^\/redirect_me https:\/\/github.com\/NwabuezeFranklin permanent;\n\n\terror_page 404 \/custom_404.html;\n\tlocation = \/custom_404.html {\n\t\troot \/usr\/share\/nginx\/html;\n\t\tinternal;\n\t}/" /etc/nginx/sites-available/default
+sed -i "s/include \/etc\/nginx\/sites-enabled\/\*;/include \/etc\/nginx\/sites-enabled\/\*;\n\tadd_header X-Served-By \"$HOSTNAME\";/" /etc/nginx/nginx.conf
+service nginx start
