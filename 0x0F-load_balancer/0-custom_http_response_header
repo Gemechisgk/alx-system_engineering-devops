@@ -1,25 +1,17 @@
 #!/bin/bash
 
-# Update and install HAProxy
+# Update and install Nginx
 sudo apt-get -y update
-sudo apt-get -y install haproxy
+sudo apt-get -y install nginx
 
-# Configure HAProxy
-sudo tee /etc/haproxy/haproxy.cfg > /dev/null <<'EOF'
-frontend web-frontend
-    bind *:80
-    mode http
-    default_backend web-servers
+# Create a basic HTML file
+echo "Hello World!" > /var/www/html/index.nginx-debian.html
 
-backend web-servers
-    mode http
-    balance roundrobin
-    server web-01 [STUDENT_ID]-web-01:80 check
-    server web-02 [STUDENT_ID]-web-02:80 check
-EOF
+# Configure custom 404 page
+echo "Ceci n'est pas une page" > /usr/share/nginx/html/custom_404.html
 
-# Enable HAProxy init script
-sudo sed -i 's/ENABLED=0/ENABLED=1/' /etc/default/haproxy
+# Configure Nginx with custom header
+sudo sed -i '/server_name _;/a \\n\tadd_header X-Served-By "$HOSTNAME";' /etc/nginx/sites-available/default
 
-# Restart HAProxy
-sudo service haproxy restart
+# Restart Nginx
+sudo service nginx restart
